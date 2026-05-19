@@ -3,3 +3,6 @@ uvicorn
 pydantic
 dotenv
 requests
+langgraph
+anthropic
+pinecone-client

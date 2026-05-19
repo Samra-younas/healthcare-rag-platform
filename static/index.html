@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CliniqAI — Healthcare RAG Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #080E1A;
+  --navy-2: #0D1525;
+  --navy-3: #111E35;
+  --navy-4: #162440;
+  --border: rgba(255,255,255,0.07);
+  --border-active: rgba(59,130,246,0.4);
+  --blue: #3B82F6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --blue-glow: rgba(59,130,246,0.08);
+  --teal: #14B8A6;
+  --teal-dim: rgba(20,184,166,0.12);
+  --green: #22C55E;
+  --green-dim: rgba(34,197,94,0.12);
+  --amber: #F59E0B;
+  --amber-dim: rgba(245,158,11,0.12);
+  --red: #EF4444;
+  --text-1: #F1F5F9;
+  --text-2: #94A3B8;
+  --text-3: #475569;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--navy);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── GRID ── */
+.app {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  grid-template-rows: 52px 1fr;
+  min-height: 100vh;
+}
+
+/* ── TOP NAV ── */
+.topnav {
+  grid-column: 1 / -1;
+  background: var(--navy-2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 228px;
+  flex-shrink: 0;
+}
+
+.brand-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--blue);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-icon svg { width: 16px; height: 16px; }
+
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+}
+
+.brand-version {
+  font-size: 10px;
+  background: var(--blue-dim);
+  color: var(--blue);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+
+.nav-divider { width: 1px; height: 24px; background: var(--border); margin: 0 16px; }
+
+.nav-stack {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stack-pill {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: transparent;
+  font-family: var(--font-body);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.stack-pill.live {
+  border-color: rgba(34,197,94,0.3);
+  color: var(--green);
+  background: var(--green-dim);
+}
+
+.nav-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mode-badge {
+  font-size: 11px;
+  color: var(--amber);
+  background: var(--amber-dim);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 4px;
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+}
+
+.mode-badge .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--navy-2);
+  border-right: 1px solid var(--border);
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.sidebar-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  padding: 0 8px;
+  margin-bottom: 4px;
+}
+
+.patient-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.patient-item:hover { background: rgba(255,255,255,0.04); }
+
+.patient-item.active {
+  background: var(--blue-dim);
+  border-color: var(--border-active);
+}
+
+.patient-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--navy-4);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.patient-item.active .patient-avatar {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+
+.patient-item-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-1);
+  line-height: 1.3;
+}
+
+.patient-item-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 1px;
+}
+
+.patient-item.active .patient-item-sub { color: rgba(147,197,253,0.7); }
+
+/* FHIR section */
+.fhir-section {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.connect-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-2);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.connect-btn:hover {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.12);
+  color: var(--text-1);
+}
+
+.connect-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  flex-shrink: 0;
+}
+
+.fhir-hint {
+  font-size: 10px;
+  color: var(--text-3);
+  line-height: 1.5;
+  padding: 6px 4px 0;
+}
+
+/* ── MAIN CONTENT ── */
+.main {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+/* ── PATIENT HEADER CARD ── */
+.patient-header-card {
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  animation: fadeUp 0.3s ease;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ph-left { display: flex; align-items: center; gap: 14px; }
+
+.ph-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+.ph-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-1);
+  letter-spacing: -0.01em;
+}
+
+.ph-meta {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ph-meta-sep { color: var(--text-3); }
+
+.fhir-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--teal-dim);
+  color: var(--teal);
+  border: 1px solid rgba(20,184,166,0.25);
+}
+
+.ph-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+.condition-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--navy-4);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+
+/* ── QUERY CARD ── */
+.query-card {
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.qc-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.question-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.preset-chip {
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font-body);
+}
+
+.preset-chip:hover {
+  border-color: rgba(59,130,246,0.4);
+  color: var(--blue);
+  background: var(--blue-dim);
+}
+
+.question-input {
+  width: 100%;
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: none;
+  min-height: 76px;
+  transition: border-color 0.15s;
+  outline: none;
+}
+
+.question-input::placeholder { color: var(--text-3); }
+.question-input:focus { border-color: var(--border-active); }
+
+.qc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.qc-footer-left { display: flex; align-items: center; gap: 8px; }
+
+.fhir-id-label {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: monospace;
+}
+
+.run-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--blue);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+.run-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0);
+  transition: background 0.15s;
+}
+
+.run-btn:hover::after { background: rgba(255,255,255,0.1); }
+.run-btn:active { transform: scale(0.98); }
+.run-btn:disabled { background: var(--navy-4); color: var(--text-3); cursor: not-allowed; }
+.run-btn:disabled::after { display: none; }
+
+.run-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* ── PIPELINE VIZ ── */
+.pipeline-card {
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: none;
+}
+
+.pipeline-card.visible { display: block; }
+
+.pipeline-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.pipeline-nodes {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.pipeline-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  position: relative;
+}
+
+.pipeline-node:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 17px;
+  left: 60%;
+  width: 80%;
+  height: 1px;
+  background: var(--border);
+  z-index: 0;
+}
+
+.pipeline-node.done:not(:last-child)::after {
+  background: linear-gradient(90deg, var(--blue) 0%, var(--teal) 100%);
+}
+
+.node-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.node-icon svg { width: 16px; height: 16px; color: var(--text-3); transition: all 0.3s; }
+
+.pipeline-node.active .node-icon {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  box-shadow: 0 0 12px rgba(59,130,246,0.25);
+}
+
+.pipeline-node.active .node-icon svg { color: var(--blue); }
+
+.pipeline-node.done .node-icon {
+  background: var(--teal-dim);
+  border-color: var(--teal);
+}
+
+.pipeline-node.done .node-icon svg { color: var(--teal); }
+
+.node-label {
+  font-size: 11px;
+  color: var(--text-3);
+  text-align: center;
+  font-weight: 500;
+  transition: color 0.3s;
+  line-height: 1.3;
+}
+
+.pipeline-node.active .node-label { color: var(--blue); }
+.pipeline-node.done .node-label { color: var(--teal); }
+
+.node-time {
+  font-size: 10px;
+  color: var(--text-3);
+  height: 14px;
+  font-family: monospace;
+}
+
+.pipeline-node.done .node-time { color: rgba(20,184,166,0.7); }
+
+.node-spin {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(59,130,246,0.2);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+}
+
+@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+.pipeline-node.active .node-spin { display: block; }
+.pipeline-node.active .node-icon > svg { display: none; }
+.pipeline-node.done .node-spin { display: none; }
+.pipeline-node.done .node-icon > svg { display: block; }
+
+/* ── RESULT CARD ── */
+.result-card {
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: none;
+  animation: fadeUp 0.35s ease;
+}
+
+.result-card.visible { display: block; }
+
+.result-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.result-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+  letter-spacing: -0.01em;
+}
+
+.result-sub {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.result-top-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.conf-ring {
+  width: 48px;
+  height: 48px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.conf-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.conf-ring-track { fill: none; stroke: var(--navy-4); stroke-width: 4; }
+.conf-ring-fill { fill: none; stroke: var(--blue); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 100; transition: stroke-dashoffset 1s ease; }
+.conf-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--blue);
+  font-family: var(--font-display);
+}
+
+.summary-block {
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--text-1);
+  margin-bottom: 16px;
+}
+
+.findings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.findings-panel {
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.fp-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.fp-header-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fp-header-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: 0.03em;
+}
+
+.fp-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.55;
+}
+
+.fp-item:last-child { border-bottom: none; }
+
+.fp-item-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-3);
+  min-width: 14px;
+  margin-top: 2px;
+  font-family: var(--font-display);
+}
+
+.result-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.sources-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.source-chip {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--navy-4);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  font-family: monospace;
+}
+
+.epic-write-badge {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: var(--green-dim);
+  border: 1px solid rgba(34,197,94,0.25);
+  color: var(--green);
+}
+
+.epic-write-badge.visible { display: flex; }
+
+.epic-write-badge svg { width: 13px; height: 13px; }
+
+/* ── ERROR ── */
+.error-card {
+  background: rgba(239,68,68,0.07);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #FCA5A5;
+  display: none;
+  line-height: 1.6;
+}
+
+.error-card.visible { display: block; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 10px;
+  opacity: 0.4;
+}
+
+.empty-state svg { width: 36px; height: 36px; color: var(--text-3); }
+.empty-state p { font-size: 13px; color: var(--text-3); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP NAV -->
+  <nav class="topnav">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+      </div>
+      <span class="brand-name">CliniqAI</span>
+      <span class="brand-version">v1.0</span>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-stack">
+      <span class="stack-pill live">● FastAPI</span>
+      <span class="stack-pill live">● LangGraph</span>
+      <span class="stack-pill">Pinecone</span>
+      <span class="stack-pill">Claude API</span>
+      <span class="stack-pill">FHIR R4</span>
+    </div>
+    <div class="nav-right">
+      <div class="mode-badge"><span class="dot"></span> Mock Mode</div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-section-label">Patients</div>
+      <div class="patient-item active" onclick="selectPatient(this,'e3MBXCOmcoLKl7ayLD51AWA3','Jason Argus','JA','Male','1985-03-15','Type 2 Diabetes, Hypertension')">
+        <div class="patient-avatar">JA</div>
+        <div>
+          <div class="patient-item-name">Jason Argus</div>
+          <div class="patient-item-sub">Type 2 Diabetes</div>
+        </div>
+      </div>
+      <div class="patient-item" onclick="selectPatient(this,'erXuFYUfucBZaryVksYEcMg3','Camila Lopez','CL','Female','1990-07-22','Asthma, Anxiety')">
+        <div class="patient-avatar">CL</div>
+        <div>
+          <div class="patient-item-name">Camila Lopez</div>
+          <div class="patient-item-sub">Asthma, Anxiety</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-section-label">Pipeline</div>
+      <div style="padding: 0 4px; display: flex; flex-direction: column; gap: 5px;">
+        <div style="font-size:12px; color:var(--text-3); display:flex; align-items:center; gap:7px; padding: 5px 6px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          LangGraph
+        </div>
+        <div style="font-size:11px; color:var(--text-3); padding: 2px 6px; display:flex; flex-direction:column; gap:3px; border-left: 2px solid var(--border); margin-left: 12px;">
+          <span>fetch_fhir</span>
+          <span>search_pinecone</span>
+          <span>generate_summary</span>
+          <span>write_to_epic</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fhir-section">
+      <div class="sidebar-section-label" style="margin-bottom:8px">Epic FHIR</div>
+      <button class="connect-btn" onclick="showEpicInfo()">
+        <span class="connect-dot"></span>
+        Connect Epic Sandbox
+        <svg width="12" height="12" style="margin-left:auto; opacity:0.4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </button>
+      <div class="fhir-hint">Run write_epic.py → OAuth login → paste Bearer token for live data</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- Patient header -->
+    <div class="patient-header-card" id="patient-header">
+      <div class="ph-left">
+        <div class="ph-avatar" id="ph-avatar">JA</div>
+        <div>
+          <div class="ph-name" id="ph-name">Jason Argus <span class="fhir-badge">FHIR R4</span></div>
+          <div class="ph-meta">
+            <span id="ph-gender">Male</span>
+            <span class="ph-meta-sep">·</span>
+            <span id="ph-dob">1985-03-15</span>
+            <span class="ph-meta-sep">·</span>
+            <span id="ph-id" style="font-family:monospace; font-size:11px">e3MBXCOm...</span>
+          </div>
+        </div>
+      </div>
+      <div class="ph-right" id="ph-conditions">
+        <span class="condition-tag">Type 2 Diabetes</span>
+        <span class="condition-tag">Hypertension</span>
+        <span class="condition-tag" style="background:var(--teal-dim); border-color:rgba(20,184,166,0.2); color:var(--teal)">mocked</span>
+      </div>
+    </div>
+
+    <!-- Query card -->
+    <div class="query-card">
+      <div class="qc-label">Clinical Query</div>
+      <div class="question-presets">
+        <button class="preset-chip" onclick="setQuestion(this)">Medication adjustments?</button>
+        <button class="preset-chip" onclick="setQuestion(this)">Dosage review needed?</button>
+        <button class="preset-chip" onclick="setQuestion(this)">Drug interactions?</button>
+        <button class="preset-chip" onclick="setQuestion(this)">Treatment alternatives?</button>
+      </div>
+      <textarea
+        class="question-input"
+        id="question"
+        rows="3"
+        placeholder="Enter a clinical question for this patient...">What medication adjustments should be considered?</textarea>
+      <div class="qc-footer">
+        <div class="qc-footer-left">
+          <span class="fhir-id-label" id="fhir-id-display">ID: e3MBXCOmcoLKl7ayLD51AWA3</span>
+        </div>
+        <button class="run-btn" id="run-btn" onclick="runQuery()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <polygon points="5,3 19,12 5,21"/>
+          </svg>
+          Run Pipeline
+        </button>
+      </div>
+    </div>
+
+    <!-- Pipeline visualizer -->
+    <div class="pipeline-card" id="pipeline-card">
+      <div class="pipeline-label">LangGraph Pipeline</div>
+      <div class="pipeline-nodes">
+        <div class="pipeline-node" id="node-fhir">
+          <div class="node-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <div class="node-spin"></div>
+          </div>
+          <div class="node-label">Epic FHIR</div>
+          <div class="node-time" id="time-fhir"></div>
+        </div>
+        <div class="pipeline-node" id="node-pinecone">
+          <div class="node-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <div class="node-spin"></div>
+          </div>
+          <div class="node-label">Pinecone</div>
+          <div class="node-time" id="time-pinecone"></div>
+        </div>
+        <div class="pipeline-node" id="node-claude">
+          <div class="node-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 0 2h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1 0-2h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/></svg>
+            <div class="node-spin"></div>
+          </div>
+          <div class="node-label">Claude API</div>
+          <div class="node-time" id="time-claude"></div>
+        </div>
+        <div class="pipeline-node" id="node-epic">
+          <div class="node-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+            <div class="node-spin"></div>
+          </div>
+          <div class="node-label">Epic Write</div>
+          <div class="node-time" id="time-epic"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-card" id="error-card"></div>
+
+    <!-- Result -->
+    <div class="result-card" id="result-card">
+      <div class="result-top">
+        <div>
+          <div class="result-title">Clinical Summary</div>
+          <div class="result-sub" id="result-meta">Generated via LangGraph · Claude API</div>
+        </div>
+        <div class="result-top-right">
+          <div class="conf-ring">
+            <svg viewBox="0 0 36 36">
+              <circle class="conf-ring-track" cx="18" cy="18" r="15.9" />
+              <circle class="conf-ring-fill" id="conf-ring-fill" cx="18" cy="18" r="15.9" stroke-dashoffset="100"/>
+            </svg>
+            <div class="conf-ring-text" id="conf-text">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-block" id="summary-text"></div>
+
+      <div class="findings-grid">
+        <div class="findings-panel">
+          <div class="fp-header">
+            <div class="fp-header-dot" style="background:var(--blue)"></div>
+            <div class="fp-header-title">Key Findings</div>
+          </div>
+          <div id="findings-list"></div>
+        </div>
+        <div class="findings-panel">
+          <div class="fp-header">
+            <div class="fp-header-dot" style="background:var(--teal)"></div>
+            <div class="fp-header-title">Recommendations</div>
+          </div>
+          <div id="recs-list"></div>
+        </div>
+      </div>
+
+      <div class="result-footer">
+        <div class="sources-row">
+          <span style="font-size:10px; color:var(--text-3); margin-right:2px">Sources</span>
+          <div id="sources-list"></div>
+        </div>
+        <div class="epic-write-badge" id="epic-write-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+          <span id="epic-write-text">Written to Epic</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const API = 'http://127.0.0.1:8000';
+  let currentPatient = {
+    id: 'e3MBXCOmcoLKl7ayLD51AWA3',
+    name: 'Jason Argus',
+    initials: 'JA',
+    gender: 'Male',
+    dob: '1985-03-15',
+    conditions: 'Type 2 Diabetes, Hypertension'
+  };
+
+  function selectPatient(el, id, name, initials, gender, dob, conditions) {
+    document.querySelectorAll('.patient-item').forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+    currentPatient = { id, name, initials, gender, dob, conditions };
+
+    document.getElementById('ph-avatar').textContent = initials;
+    document.getElementById('ph-name').innerHTML = name + ' <span class="fhir-badge">FHIR R4</span>';
+    document.getElementById('ph-gender').textContent = gender;
+    document.getElementById('ph-dob').textContent = dob;
+    document.getElementById('ph-id').textContent = id.slice(0,8) + '...';
+    document.getElementById('fhir-id-display').textContent = 'ID: ' + id;
+
+    const condList = conditions.split(',').map(c =>
+      `<span class="condition-tag">${c.trim()}</span>`
+    ).join('') + `<span class="condition-tag" style="background:var(--teal-dim);border-color:rgba(20,184,166,0.2);color:var(--teal)">mocked</span>`;
+    document.getElementById('ph-conditions').innerHTML = condList;
+
+    document.getElementById('result-card').classList.remove('visible');
+    document.getElementById('error-card').classList.remove('visible');
+    document.getElementById('pipeline-card').classList.remove('visible');
+  }
+
+  function setQuestion(btn) {
+    document.getElementById('question').value = btn.textContent;
+  }
+
+  function setNodeState(nodeId, state, time) {
+    const node = document.getElementById('node-' + nodeId);
+    node.classList.remove('active', 'done');
+    if (state) node.classList.add(state);
+    if (time) document.getElementById('time-' + nodeId).textContent = time;
+  }
+
+  function resetNodes() {
+    ['fhir','pinecone','claude','epic'].forEach(n => {
+      setNodeState(n, '', '');
+    });
+  }
+
+  async function runQuery() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) return;
+
+    document.getElementById('run-btn').disabled = true;
+    document.getElementById('result-card').classList.remove('visible');
+    document.getElementById('error-card').classList.remove('visible');
+    document.getElementById('pipeline-card').classList.add('visible');
+    resetNodes();
+
+    const t0 = Date.now();
+
+    function elapsed() { return ((Date.now() - t0) / 1000).toFixed(1) + 's'; }
+
+    setNodeState('fhir', 'active', '');
+
+    await delay(700);
+    setNodeState('fhir', 'done', elapsed());
+    setNodeState('pinecone', 'active', '');
+
+    await delay(900);
+    setNodeState('pinecone', 'done', elapsed());
+    setNodeState('claude', 'active', '');
+
+    try {
+      const res = await fetch(API + '/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patient_id: currentPatient.id, question })
+      });
+
+      if (!res.ok) throw new Error('API error ' + res.status);
+      const data = await res.json();
+
+      setNodeState('claude', 'done', elapsed());
+      setNodeState('epic', 'active', '');
+      await delay(400);
+      setNodeState('epic', 'done', elapsed());
+
+      renderResult(data);
+
+    } catch (err) {
+      setNodeState('claude', '', '');
+      document.getElementById('pipeline-card').classList.remove('visible');
+      const ec = document.getElementById('error-card');
+      ec.innerHTML = `<strong>Cannot connect to API</strong><br>
+        Make sure the server is running:<br>
+        <code style="font-family:monospace; background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:4px">python -m uvicorn main:app --reload</code><br><br>
+        Then refresh and try again. Expected at <code style="font-family:monospace">http://127.0.0.1:8000</code>`;
+      ec.classList.add('visible');
+    }
+
+    document.getElementById('run-btn').disabled = false;
+  }
+
+  function renderResult(data) {
+    const conf = data.confidence_score || 0;
+    const pct = Math.round(conf * 100);
+    const circumference = 2 * Math.PI * 15.9;
+    const offset = circumference - (conf * circumference);
+
+    document.getElementById('conf-ring-fill').style.strokeDasharray = circumference;
+    document.getElementById('conf-ring-fill').style.strokeDashoffset = offset;
+    document.getElementById('conf-ring-fill').style.stroke = conf >= 0.7 ? 'var(--teal)' : conf >= 0.5 ? 'var(--blue)' : 'var(--amber)';
+    document.getElementById('conf-text').textContent = pct + '%';
+    document.getElementById('conf-text').style.color = conf >= 0.7 ? 'var(--teal)' : conf >= 0.5 ? 'var(--blue)' : 'var(--amber)';
+
+    document.getElementById('result-meta').textContent =
+      'Patient: ' + currentPatient.name + ' · LangGraph + Claude API';
+
+    document.getElementById('summary-text').textContent = data.summary || '';
+
+    document.getElementById('findings-list').innerHTML =
+      (data.key_findings || []).map((f, i) =>
+        `<div class="fp-item"><span class="fp-item-num">${String(i+1).padStart(2,'0')}</span><span>${f}</span></div>`
+      ).join('');
+
+    document.getElementById('recs-list').innerHTML =
+      (data.recommendations || []).map((r, i) =>
+        `<div class="fp-item"><span class="fp-item-num">${String(i+1).padStart(2,'0')}</span><span>${r}</span></div>`
+      ).join('');
+
+    document.getElementById('sources-list').innerHTML =
+      (data.sources_used || []).map(s =>
+        `<span class="source-chip">${s}</span>`
+      ).join('');
+
+    const wb = document.getElementById('epic-write-badge');
+    if (data.epic_write_status && !data.epic_write_status.includes('skipped')) {
+      document.getElementById('epic-write-text').textContent = 'Written to Epic · ' + data.epic_write_status;
+      wb.classList.add('visible');
+    } else {
+      wb.classList.remove('visible');
+    }
+
+    document.getElementById('result-card').classList.add('visible');
+  }
+
+  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function showEpicInfo() {
+    alert(
+      'Epic FHIR — Live Mode Setup\n\n' +
+      '1. Run:  python write_epic.py\n' +
+      '2. Open: http://localhost:5000\n' +
+      '3. Log in via Epic OAuth sandbox\n' +
+      '4. Copy the Bearer access token\n' +
+      '5. Add to .env: EPIC_ACCESS_TOKEN=...\n\n' +
+      'Current: Mock mode (same architecture)\n' +
+      'FHIR URL: fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4'
+    );
+  }
+</script>
+</body>
+</html>
