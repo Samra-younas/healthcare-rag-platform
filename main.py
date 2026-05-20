@@ -1,5 +1,7 @@
 # main.py
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from models import PatientQuery, ClinicalSummary
 from graph import graph
 
@@ -9,7 +11,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# ── Serve frontend ──────────────────────
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
+@app.get("/")
+def serve_frontend():
+    return FileResponse("static/index.html")
+
+# ── Health check ────────────────────────
 @app.get("/health")
 def health_check():
     return {
@@ -17,32 +26,21 @@ def health_check():
         "service": "Healthcare RAG Platform"
     }
 
-
+# ── Main query endpoint ─────────────────
 @app.post("/query", response_model=ClinicalSummary)
 def query_patient(request: PatientQuery):
     try:
         initial_state = {
             "patient_id": request.patient_id,
             "question": request.question,
+            "access_token": None,
             "patient_context": "",
             "literature_context": "",
-            "summary": None
+            "summary": None,
+            "epic_write_status": None
         }
-
         config = {"configurable": {"thread_id": request.patient_id}}
-
         result = graph.invoke(initial_state, config=config)
-
         return ClinicalSummary(**result["summary"])
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-@app.get("/")
-def serve_frontend():
-    return FileResponse("static/index.html")

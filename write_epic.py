@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = "clinical_v18_final"
 
 # --- CONFIGURATION ---
-CLIENT_ID = 
+CLIENT_ID =
 REDIRECT_URI = 
 TOKEN_URL = 
 AUTH_URL = 
@@ -51,7 +51,7 @@ def dashboard():
     selected_p_id = request.form.get('v_id') or request.args.get('p_id') or "e3MBXCOmcoLKl7ayLD51AWA3" 
     info = get_patient_info(token, selected_p_id) # Fetch details for Blue Box
     
-    patients = [{'id': '', 'name': 'Jason Argus'}, {'id': 'erXuFYUfucBZaryVksYEcMg3', 'name': 'Camila Lopez'}]
+    patients = [{'id': 'e3MBXCOmcoLKl7ayLD51AWA3', 'name': 'Jason Argus'}, {'id': 'erXuFYUfucBZaryVksYEcMg3', 'name': 'Camila Lopez'}]
     options = "".join([f"<option value='{p['id']}' {'selected' if p['id']==selected_p_id else ''}>{p['name']}</option>" for p in patients])
     
     return f"""
