@@ -6,7 +6,10 @@
 
 ![Clinical Summary Output](static/images/2.jpg)
 
-> 🎬 [Watch Demo Video](static/images/demo-fhir.mp4)
+> 🎬 [Watch Demo Video]
+
+https://github.com/user-attachments/assets/74b3e54f-09cb-4072-9dff-dd2df76e5fef
+
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue?style=flat-square)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.123-green?style=flat-square)
